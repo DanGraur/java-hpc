@@ -1,0 +1,10 @@
+package {$package};
+
+public class {$className} {
+
+    @Override
+    public String toString() {
+        return "Hello, my name is {$className}.";
+    }
+
+}
