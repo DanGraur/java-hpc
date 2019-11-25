@@ -1,10 +1,17 @@
 package benchmark.hardcoded;
 
+import benchmark.hardcoded.types.ArrayListA0;
 import com.google.gson.Gson;
+import generated.classes.A0;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.List;
+import java.util.*;
+
+enum SamplingStrategy {
+    UNIFORM,
+    SAME_TOP_LVL
+}
 
 public class ClassHierarchy {
 
@@ -16,18 +23,140 @@ public class ClassHierarchy {
         this.packagePath = packagePath;
     }
 
-    public static void main(String[] args) throws FileNotFoundException, ClassNotFoundException {
-        ClassHierarchy ch = new ClassHierarchy("class_structure.json", "generated.classes");
-
-        for (int i = 0; i < ch.classHierarchy.length; ++i) {
-            for (String s : ch.classHierarchy[i])
+    /**
+     * Prints the class hierarchy.
+     */
+    public void printHierarchy() {
+        for (int i = 0; i < this.classHierarchy.length; ++i) {
+            for (String s : this.classHierarchy[i])
                 System.out.print(s + " ");
             System.out.println();
         }
+    }
 
-        Class cls = Class.forName(ch.packagePath + "." + ch.classHierarchy[1].get(0));
+    /**
+     * Generate a sequence of classes which will be added to the data structures towards testing
+     *
+     * @param sampleCount the number of entries to be generated
+     * @param strategyType the type of strategy to follow
+     * @return an array of Strings containing class names
+     */
+    public String[] generateStrategy(int sampleCount, SamplingStrategy strategyType) {
+        Random random = new Random();
+        String[] res = new String[sampleCount];
 
-        System.out.println(cls);
+        if (strategyType == SamplingStrategy.UNIFORM) {
+            int classCount = getClassCount();
+            int[] samples = random.ints(sampleCount, 0, classCount).toArray();
+
+            // As this is uniform sampling, we can simply concatenate the classHierarchy elements together and sample
+            int j = 0;
+            String[] classes = new String[classCount];
+
+            for (List<String> s : this.classHierarchy)
+                for (String className : s)
+                    classes[j++] = className;
+
+            for (int i = 0; i < sampleCount; ++i)
+                res[i] = classes[samples[i]];
+        } else if (strategyType == SamplingStrategy.SAME_TOP_LVL) {
+            for (int i = 0; i < sampleCount; ++i)
+                res[i] = this.classHierarchy[0].get(0);
+        }
+
+        return res;
+    }
+
+    /**
+     * Get the total number of generated classes
+     *
+     * @return the total number of generated classes
+     */
+    private int getClassCount() {
+        Optional<Integer> res = Arrays.stream(classHierarchy).map(List::size).reduce((Integer x, Integer y) -> x + y);
+        return res.isPresent() ? res.get() : -1;
+    }
+
+    /* TODO: need to see if this also works with Generics, i.e. change hard-coded A0 to T */
+    public ArrayList<A0> generateArrayListWorkloadA0(String[] strategy) throws IllegalAccessException,
+            InstantiationException, ClassNotFoundException {
+        ArrayList<A0> res = new ArrayList<>();
+        HashMap<String, Class> cachedClassses = new HashMap<>();
+
+        for (String s : strategy) {
+            String className = this.packagePath + "." + s;
+
+            if (!cachedClassses.containsKey(className))
+                cachedClassses.put(className, Class.forName(className));
+
+            res.add((A0) cachedClassses.get(className).newInstance());
+        }
+
+        return res;
+    }
+
+    /* TODO: need to see if this also works with Generics, i.e. change hard-coded A0 to T */
+    public ArrayListA0 generateA0ListWorkloadA0(String[] strategy) throws IllegalAccessException,
+            InstantiationException, ClassNotFoundException {
+        ArrayListA0 res = new ArrayListA0();
+        HashMap<String, Class> cachedClassses = new HashMap<>();
+
+        for (String s : strategy) {
+            String className = this.packagePath + "." + s;
+
+            if (!cachedClassses.containsKey(className))
+                cachedClassses.put(className, Class.forName(className));
+
+            res.add((A0) cachedClassses.get(className).newInstance());
+        }
+
+        return res;
+    }
+
+    public static void main(String[] args) throws FileNotFoundException, ClassNotFoundException, InstantiationException,
+            IllegalAccessException {
+        ClassHierarchy classHierarchy = new ClassHierarchy("class_structure.json", "generated.classes");
+
+        /* Create the Generic ArrayList workloads */
+        ArrayList<A0> sameClassWorkload = classHierarchy.generateArrayListWorkloadA0(
+                classHierarchy.generateStrategy(10000, SamplingStrategy.SAME_TOP_LVL));
+        ArrayList<A0> uniformClassWorkload = classHierarchy.generateArrayListWorkloadA0(
+                classHierarchy.generateStrategy(10000, SamplingStrategy.UNIFORM));
+
+        /* Create the special type ArrayListA0 workloads */
+        ArrayListA0 sameClassWorkloadA0 = classHierarchy.generateA0ListWorkloadA0(
+                classHierarchy.generateStrategy(10000, SamplingStrategy.SAME_TOP_LVL));
+        ArrayListA0 uniformClassWorkloadA0 = classHierarchy.generateA0ListWorkloadA0(
+                classHierarchy.generateStrategy(10000, SamplingStrategy.UNIFORM));
+
+        long startTime = System.nanoTime();
+        for (int i = 0; i < sameClassWorkloadA0.size(); ++i)
+            sameClassWorkloadA0.get(i).toString();
+        long endTime = System.nanoTime();
+        System.out.println("(Custom List, Top Level) The elapsed time is: " + (endTime - startTime));
+
+        startTime = System.nanoTime();
+        for (int i = 0; i < uniformClassWorkloadA0.size(); ++i)
+            uniformClassWorkloadA0.get(i).toString();
+        endTime = System.nanoTime();
+        System.out.println("(Custom List, Uniform) The elapsed time is: " + (endTime - startTime));
+
+
+        startTime = System.nanoTime();
+        for (int i = 0; i < sameClassWorkload.size(); ++i)
+            sameClassWorkload.get(i).toString();
+        endTime = System.nanoTime();
+        System.out.println("(Generic List, Top Level) The elapsed time is: " + (endTime - startTime));
+
+        startTime = System.nanoTime();
+        for (int i = 0; i < uniformClassWorkload.size(); ++i)
+            uniformClassWorkload.get(i).toString();
+        endTime = System.nanoTime();
+        System.out.println("(Generic List, Uniform) The elapsed time is: " + (endTime - startTime));
+
+
+        //        Arrays.stream(ch.generateStrategy(200, SamplingStrategy.UNIFORM)).forEachOrdered(System.out::print);
+//        Class cls = Class.forName(ch.packagePath + "." + ch.classHierarchy[1].get(0));
     }
 
 }
