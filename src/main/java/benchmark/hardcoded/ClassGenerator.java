@@ -1,11 +1,14 @@
 package benchmark.hardcoded;
 
+import com.google.gson.Gson;
 import com.x5.template.Theme;
 import com.x5.template.Chunk;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class ClassGenerator {
@@ -17,6 +20,7 @@ public class ClassGenerator {
 
     private String packagePath;
     private String baseClassName;
+    private String jsonSavePath;
     private int maxChildren;
     private int maxDepth;
 
@@ -29,15 +33,24 @@ public class ClassGenerator {
     /* We'll store the path to the directory where the .java classes will be stored */
     private String saveDirectoryPath;
 
-    public ClassGenerator(String packageName, int maxChildren, int maxDepth, String baseClassName) {
+    /* We'll collect the generated classes in a vector aof ArrayLists so they can later be used */
+    private List<String>[] classNames;
+
+    public ClassGenerator(String packageName, int maxChildren, int maxDepth, String baseClassName,
+                          String jsonSavePath) {
         this.packagePath = packageName;
         this.maxChildren = maxChildren;
         this.maxDepth = maxDepth;
         this.baseClassName = baseClassName;
+        this.jsonSavePath = jsonSavePath;
 
         this.random = new Random();
         this.theme = new Theme("src/themes", "");
         this.saveDirectoryPath = (BASE_PACKAGE_HIERARCHY + "." + this.packagePath).replace(".", "/");
+
+        this.classNames = (List<String>[]) new List[this.maxDepth + 1];
+        for (int i = 0; i <= this.maxDepth; ++i)
+            this.classNames[i] = new ArrayList<>();
     }
 
     /**
@@ -46,12 +59,13 @@ public class ClassGenerator {
      * Step 2: Create top lvl class in the package
      * Step 3: Create the other classes as well
      * Step 4: Collect data in an array: List[] -> ArrayList<String>, i.e. level to classes at that level
+     * Step 5: The path where the json file which defines the class hierarchy will be saved
      */
     public static void main(String[] args) throws IOException {
 
-        if (args.length != 4) {
+        if (args.length != 5) {
             System.err.println("Invalid number of arguments!\nUsage: ClassGenerator " +
-                    "<destination_package> <max_children> <max_depth> <base_class_name>");
+                    "<destination_package> <max_children> <max_depth> <base_class_name> <json_save_path>");
 
             System.exit(0xFF);
         }
@@ -60,10 +74,19 @@ public class ClassGenerator {
                 args[0],                    // The package name (a dot separated list of dir names)
                 Integer.parseInt(args[1]),  // The maximal number of direct descendants a class can have
                 Integer.parseInt(args[2]),  // The maximal depth of the inheritance tree
-                args[3]                     // The base name for the generated classes
+                args[3],                     // The base name for the generated classes
+                args[4]                     // The base name for the generated classes
         );
 
         generator.generateClasses();
+
+        Gson gson = new Gson();
+
+        try (FileWriter writer = new FileWriter(generator.jsonSavePath)) {
+            gson.toJson(generator.classNames, writer);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
 
         // If we got to this place, then it means that no errors have occurred
         System.out.println("The classes have been successfully created.");
@@ -76,6 +99,7 @@ public class ClassGenerator {
         // We'll start creating the classes using a DFS approach
         String topLevelClassName = this.baseClassName + "0";
         makeTopLevelClass(topLevelClassName);
+        this.classNames[0].add(topLevelClassName);
 
         int childrenCount = random.nextInt(this.maxChildren) + 1;
 
@@ -88,14 +112,15 @@ public class ClassGenerator {
 
     private int generateChildren(int count, int depth, String parent, String ancestors) throws IOException {
         if (depth <= this.maxDepth) {
-            String my_name = this.baseClassName + count++;
+            String myName = this.baseClassName + count++;
             int childrenCount = random.nextInt(this.maxChildren) + 1;
 
-            makeSubclass(my_name, parent, ancestors);
+            makeSubclass(myName, parent, ancestors);
+            this.classNames[depth].add(myName);
 
-            ancestors += "." + my_name;
+            ancestors += "." + myName;
             for (int i = 0; i < childrenCount; ++i)
-                count = generateChildren(count, depth + 1, my_name, ancestors);
+                count = generateChildren(count, depth + 1, myName, ancestors);
         }
 
         return count;
