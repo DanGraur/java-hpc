@@ -61,6 +61,11 @@ public class ArrayListA0 extends AbstractList<A0> implements List<A0>, RandomAcc
             throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
     }
 
+    public boolean add(A0 var1) {
+        this.add(this.size(), var1);
+        return true;
+    }
+
     public void add(int index, A0 element) {
         rangeCheckForAdd(index);
 

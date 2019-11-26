@@ -117,46 +117,61 @@ public class ClassHierarchy {
             IllegalAccessException {
         ClassHierarchy classHierarchy = new ClassHierarchy("class_structure.json", "generated.classes");
 
-        /* Create the Generic ArrayList workloads */
-        ArrayList<A0> sameClassWorkload = classHierarchy.generateArrayListWorkloadA0(
-                classHierarchy.generateStrategy(10000, SamplingStrategy.SAME_TOP_LVL));
-        ArrayList<A0> uniformClassWorkload = classHierarchy.generateArrayListWorkloadA0(
-                classHierarchy.generateStrategy(10000, SamplingStrategy.UNIFORM));
+        long startTime;
+        long endTime;
 
         /* Create the special type ArrayListA0 workloads */
+        startTime = System.nanoTime();
         ArrayListA0 sameClassWorkloadA0 = classHierarchy.generateA0ListWorkloadA0(
-                classHierarchy.generateStrategy(10000, SamplingStrategy.SAME_TOP_LVL));
-        ArrayListA0 uniformClassWorkloadA0 = classHierarchy.generateA0ListWorkloadA0(
-                classHierarchy.generateStrategy(10000, SamplingStrategy.UNIFORM));
+                classHierarchy.generateStrategy(1000000, SamplingStrategy.SAME_TOP_LVL));
+        endTime = System.nanoTime();
+        System.out.println("(Custom List, Top Level, Creation) The elapsed time is: " + (endTime - startTime));
 
-        long startTime = System.nanoTime();
+        startTime = System.nanoTime();
+        ArrayListA0 uniformClassWorkloadA0 = classHierarchy.generateA0ListWorkloadA0(
+                classHierarchy.generateStrategy(1000000, SamplingStrategy.UNIFORM));
+        endTime = System.nanoTime();
+        System.out.println("(Custom List, Uniform, Creation) The elapsed time is: " + (endTime - startTime));
+
+        /* Create the Generic ArrayList workloads */
+        startTime = System.nanoTime();
+        ArrayList<A0> sameClassWorkload = classHierarchy.generateArrayListWorkloadA0(
+                classHierarchy.generateStrategy(1000000, SamplingStrategy.SAME_TOP_LVL));
+        endTime = System.nanoTime();
+        System.out.println("(Generic List, Top Level, Creation) The elapsed time is: " + (endTime - startTime));
+
+        startTime = System.nanoTime();
+        ArrayList<A0> uniformClassWorkload = classHierarchy.generateArrayListWorkloadA0(
+                classHierarchy.generateStrategy(1000000, SamplingStrategy.UNIFORM));
+        endTime = System.nanoTime();
+        System.out.println("(Generic List, Uniform, Creation) The elapsed time is: " + (endTime - startTime));
+
+
+        startTime = System.nanoTime();
         for (int i = 0; i < sameClassWorkloadA0.size(); ++i)
             sameClassWorkloadA0.get(i).toString();
-        long endTime = System.nanoTime();
-        System.out.println("(Custom List, Top Level) The elapsed time is: " + (endTime - startTime));
+        endTime = System.nanoTime();
+        System.out.println("(Custom List, Top Level, Retrieval) The elapsed time is: " + (endTime - startTime));
 
         startTime = System.nanoTime();
         for (int i = 0; i < uniformClassWorkloadA0.size(); ++i)
             uniformClassWorkloadA0.get(i).toString();
         endTime = System.nanoTime();
-        System.out.println("(Custom List, Uniform) The elapsed time is: " + (endTime - startTime));
+        System.out.println("(Custom List, Uniform, Retrieval) The elapsed time is: " + (endTime - startTime));
 
 
         startTime = System.nanoTime();
         for (int i = 0; i < sameClassWorkload.size(); ++i)
             sameClassWorkload.get(i).toString();
         endTime = System.nanoTime();
-        System.out.println("(Generic List, Top Level) The elapsed time is: " + (endTime - startTime));
+        System.out.println("(Generic List, Top Level, Retrieval) The elapsed time is: " + (endTime - startTime));
 
         startTime = System.nanoTime();
         for (int i = 0; i < uniformClassWorkload.size(); ++i)
             uniformClassWorkload.get(i).toString();
         endTime = System.nanoTime();
-        System.out.println("(Generic List, Uniform) The elapsed time is: " + (endTime - startTime));
+        System.out.println("(Generic List, Uniform, Retrieval) The elapsed time is: " + (endTime - startTime));
 
-
-        //        Arrays.stream(ch.generateStrategy(200, SamplingStrategy.UNIFORM)).forEachOrdered(System.out::print);
-//        Class cls = Class.forName(ch.packagePath + "." + ch.classHierarchy[1].get(0));
     }
 
 }
