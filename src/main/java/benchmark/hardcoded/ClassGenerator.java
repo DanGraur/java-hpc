@@ -74,7 +74,7 @@ public class ClassGenerator {
                 args[0],                    // The package name (a dot separated list of dir names)
                 Integer.parseInt(args[1]),  // The maximal number of direct descendants a class can have
                 Integer.parseInt(args[2]),  // The maximal depth of the inheritance tree
-                args[3],                     // The base name for the generated classes
+                args[3],                    // The base name for the generated classes
                 args[4]                     // The base name for the generated classes
         );
 

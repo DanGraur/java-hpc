@@ -1,21 +1,19 @@
 package benchmark.hardcoded.types;
 
-import generated.classes.A0;
-
 import java.util.*;
 
-public class ArrayListA0 implements RandomAccess, Cloneable, java.io.Serializable {
+public class ArrayListT<T> implements RandomAccess, Cloneable, java.io.Serializable {
 
     private static final long serialVersionUID = 8683452581122892189L;
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
-    private static final A0[] EMPTY_ELEMENTDATA = new A0[0];
-    private static final A0[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = new A0[0];
+    private static final Object[] EMPTY_ELEMENTDATA = new Object[0];
+    private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = new Object[0];
 
     /**
      * The array buffer into which the elements of the ArrayList are stored.
      * The capacity of the ArrayList is the length of this array buffer.
      */
-    transient A0[] elementData;
+    transient Object[] elementData;
 
     /**
      * The size of the ArrayList (the number of elements it contains).
@@ -27,7 +25,7 @@ public class ArrayListA0 implements RandomAccess, Cloneable, java.io.Serializabl
     /**
      * The default constructor which creates a custom ArrayList with an initial capacity of 10 elements
      */
-    public ArrayListA0() {
+    public ArrayListT() {
         this(10);
     }
 
@@ -38,9 +36,9 @@ public class ArrayListA0 implements RandomAccess, Cloneable, java.io.Serializabl
      * @throws IllegalArgumentException if the specified initial capacity
      *         is negative
      */
-    public ArrayListA0(int initialCapacity) {
+    public ArrayListT(int initialCapacity) {
         if (initialCapacity > 0) {
-            this.elementData = new A0[initialCapacity];
+            this.elementData = new Object[initialCapacity];
         } else {
             if (initialCapacity != 0) {
                 throw new IllegalArgumentException("Illegal Capacity: " + initialCapacity);
@@ -58,13 +56,13 @@ public class ArrayListA0 implements RandomAccess, Cloneable, java.io.Serializabl
             throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
     }
 
-    public boolean add(A0 var1) {
+    public boolean add(T var1) {
         this.ensureCapacityInternal(this.size + 1);
         this.elementData[this.size++] = var1;
         return true;
     }
 
-    public void add(int var1, A0 var2) {
+    public void add(int var1, T var2) {
         this.rangeCheckForAdd(var1);
         this.ensureCapacityInternal(this.size + 1);
         System.arraycopy(this.elementData, var1, this.elementData, var1 + 1, this.size - var1);
@@ -77,7 +75,7 @@ public class ArrayListA0 implements RandomAccess, Cloneable, java.io.Serializabl
     }
 
 
-    private static int calculateCapacity(A0[] var0, int var1) {
+    private static int calculateCapacity(Object[] var0, int var1) {
         return var0 == DEFAULTCAPACITY_EMPTY_ELEMENTDATA ? Math.max(10, var1) : var1;
     }
 
@@ -118,10 +116,10 @@ public class ArrayListA0 implements RandomAccess, Cloneable, java.io.Serializabl
             throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
     }
 
-    public A0 get(int i) {
+    public T get(int i) {
         rangeCheck(i);
 
-        return elementData[i];
+        return (T) elementData[i];
     }
 
     public int size() {

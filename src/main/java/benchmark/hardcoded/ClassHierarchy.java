@@ -1,6 +1,7 @@
 package benchmark.hardcoded;
 
 import benchmark.hardcoded.types.ArrayListA0;
+import benchmark.hardcoded.types.ArrayListT;
 import com.google.gson.Gson;
 import generated.classes.A0;
 
@@ -119,11 +120,10 @@ public class ClassHierarchy {
         return classCache;
     }
 
-
     /* TODO: need to see if this also works with Generics, i.e. change hard-coded A0 to T */
-    public ArrayList<A0> generateArrayListWorkloadA0(String[] strategy, HashMap<String, Class> classCache)
+    public ArrayListT<A0> generateArrayListWorkloadA0(String[] strategy, HashMap<String, Class> classCache)
             throws IllegalAccessException, InstantiationException {
-        ArrayList<A0> res = new ArrayList<>(strategy.length);
+        ArrayListT<A0> res = new ArrayListT<>(strategy.length);
 
         for (String s : strategy)
             res.add((A0) classCache.get(s).newInstance());
@@ -201,9 +201,9 @@ public class ClassHierarchy {
             ArrayListA0 sameClassWorkloadA0 = null;
             ArrayListA0 leafWorkloadA0 = null;
             ArrayListA0 uniformClassWorkloadA0 = null;
-            ArrayList<A0> sameClassWorkload = null;
-            ArrayList<A0> leafClassWorkload = null;
-            ArrayList<A0> uniformClassWorkload = null;
+            ArrayListT<A0> sameClassWorkload = null;
+            ArrayListT<A0> leafClassWorkload = null;
+            ArrayListT<A0> uniformClassWorkload = null;
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_TL ||
                     evaluationType == EvaluationType.GET_HARDCODED_TL)
@@ -266,9 +266,9 @@ public class ClassHierarchy {
             ArrayListA0 sameClassWorkloadA0 = null;
             ArrayListA0 leafWorkloadA0 = null;
             ArrayListA0 uniformClassWorkloadA0 = null;
-            ArrayList<A0> sameClassWorkload = null;
-            ArrayList<A0> leafClassWorkload = null;
-            ArrayList<A0> uniformClassWorkload = null;
+            ArrayListT<A0> sameClassWorkload = null;
+            ArrayListT<A0> leafClassWorkload = null;
+            ArrayListT<A0> uniformClassWorkload = null;
 
             String[] strategy;
 
@@ -392,14 +392,15 @@ public class ClassHierarchy {
         ClassHierarchy classHierarchy = new ClassHierarchy("class_structure.json", "generated.classes");
 
         // This should be the number of experiment runs which are used to warm-up the system, but are not considered
-        int warmupRuns = 20;
+        int warmupRuns = 100;
         // These are the runs which contribute towards the final results
-        int runCount = 200;
+        int runCount = 1000;
 
-        /* Create the special type ArrayListA0 workloads */
+        /* Run the experiments */
         HashMap<String, Double> results =  classHierarchy.exectueBenchmarks(runCount, warmupRuns,
-                EvaluationType.ADD_HARDCODED_L,1000000);
+                EvaluationType.GET_GENERIC_U,1000000);
 
+        /* Print the results */
         for (Map.Entry<String, Double> entry : results.entrySet())
             System.out.println(entry.getKey() + " --> " + entry.getValue() / 10e6 + " ms");
     }
