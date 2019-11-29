@@ -8,6 +8,22 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.*;
 
+enum EvaluationType {
+    ALL,
+    ADD_GENERIC_TL,
+    ADD_GENERIC_U,
+    ADD_GENERIC_L,
+    ADD_HARDCODED_TL,
+    ADD_HARDCODED_U,
+    ADD_HARDCODED_L,
+    GET_GENERIC_TL,
+    GET_GENERIC_U,
+    GET_GENERIC_L,
+    GET_HARDCODED_TL,
+    GET_HARDCODED_U,
+    GET_HARDCODED_L
+}
+
 enum SamplingStrategy {
     UNIFORM,
     SAME_TOP_LVL,
@@ -107,7 +123,7 @@ public class ClassHierarchy {
     /* TODO: need to see if this also works with Generics, i.e. change hard-coded A0 to T */
     public ArrayList<A0> generateArrayListWorkloadA0(String[] strategy, HashMap<String, Class> classCache)
             throws IllegalAccessException, InstantiationException {
-        ArrayList<A0> res = new ArrayList<>();
+        ArrayList<A0> res = new ArrayList<>(strategy.length);
 
         for (String s : strategy)
             res.add((A0) classCache.get(s).newInstance());
@@ -118,7 +134,7 @@ public class ClassHierarchy {
     /* TODO: need to see if this also works with Generics, i.e. change hard-coded A0 to T */
     public ArrayListA0 generateA0ListWorkloadA0(String[] strategy, HashMap<String, Class> classCache)
             throws IllegalAccessException, InstantiationException {
-        ArrayListA0 res = new ArrayListA0();
+        ArrayListA0 res = new ArrayListA0(strategy.length);
 
         for (String s : strategy)
             res.add((A0) classCache.get(s).newInstance());
@@ -130,58 +146,116 @@ public class ClassHierarchy {
         resultMap.put(key, resultMap.get(key) + (newResult / (double) runs));
     }
 
-    public HashMap<String, Double> exectueBenchmarks(int runCount, int warmupRuns) throws ClassNotFoundException,
+    public HashMap<String, Double> exectueBenchmarks(int runCount, int warmupRuns, EvaluationType evaluationType,
+                                                     int sampleCount) throws ClassNotFoundException,
             InstantiationException, IllegalAccessException {
         long startTime;
         long time;
         HashMap<String, Double> scores = new HashMap<>();
         HashMap<String, Class> classCache = populateClassCache();
 
-        scores.put("Custom List, Top Level, Creation", 0.0);
-        scores.put("Custom List, Leaf, Creation", 0.0);
-        scores.put("Custom List, Uniform, Creation", 0.0);
-        scores.put("Generic List, Top Level, Creation", 0.0);
-        scores.put("Generic List, Leaf, Creation", 0.0);
-        scores.put("Generic List, Uniform, Creation", 0.0);
-        scores.put("Custom List, Top Level, Retrieval", 0.0);
-        scores.put("Custom List, Uniform, Retrieval", 0.0);
-        scores.put("Custom List, Leaf, Retrieval", 0.0);
-        scores.put("Generic List, Top Level, Retrieval", 0.0);
-        scores.put("Generic List, Leaf, Retrieval", 0.0);
-        scores.put("Generic List, Uniform, Retrieval", 0.0);
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_TL ||
+                evaluationType == EvaluationType.GET_HARDCODED_TL)
+            scores.put("Custom List, Top Level, Creation", 0.0);
+
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_L ||
+                evaluationType == EvaluationType.GET_HARDCODED_L)
+            scores.put("Custom List, Leaf, Creation", 0.0);
+
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_U ||
+                evaluationType == EvaluationType.GET_HARDCODED_U)
+            scores.put("Custom List, Uniform, Creation", 0.0);
+
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_TL ||
+                evaluationType == EvaluationType.GET_GENERIC_TL)
+            scores.put("Generic List, Top Level, Creation", 0.0);
+
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_L ||
+                evaluationType == EvaluationType.GET_GENERIC_L)
+            scores.put("Generic List, Leaf, Creation", 0.0);
+
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_U ||
+                evaluationType == EvaluationType.GET_GENERIC_U)
+            scores.put("Generic List, Uniform, Creation", 0.0);
+
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_TL)
+            scores.put("Custom List, Top Level, Retrieval", 0.0);
+
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_L)
+            scores.put("Custom List, Leaf, Retrieval", 0.0);
+
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_U)
+            scores.put("Custom List, Uniform, Retrieval", 0.0);
+
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_TL)
+            scores.put("Generic List, Top Level, Retrieval", 0.0);
+
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_L)
+            scores.put("Generic List, Leaf, Retrieval", 0.0);
+
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_U)
+            scores.put("Generic List, Uniform, Retrieval", 0.0);
 
         /* These are the actual experiment runs, which count towards the final result */
         for (int i = 0; i < warmupRuns; ++i) {
-            ArrayListA0 sameClassWorkloadA0 = generateA0ListWorkloadA0(generateStrategy(1000000,
-                    SamplingStrategy.SAME_TOP_LVL), classCache);
+            ArrayListA0 sameClassWorkloadA0 = null;
+            ArrayListA0 leafWorkloadA0 = null;
+            ArrayListA0 uniformClassWorkloadA0 = null;
+            ArrayList<A0> sameClassWorkload = null;
+            ArrayList<A0> leafClassWorkload = null;
+            ArrayList<A0> uniformClassWorkload = null;
 
-            ArrayListA0 leafWorkloadA0 = generateA0ListWorkloadA0(generateStrategy(1000000,
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_TL ||
+                    evaluationType == EvaluationType.GET_HARDCODED_TL)
+                sameClassWorkloadA0 = generateA0ListWorkloadA0(generateStrategy(sampleCount,
+                        SamplingStrategy.SAME_TOP_LVL), classCache);
+
+
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_L ||
+                    evaluationType == EvaluationType.GET_HARDCODED_L)
+                leafWorkloadA0 = generateA0ListWorkloadA0(generateStrategy(sampleCount,
                     SamplingStrategy.SAME_LAST_LEAF), classCache);
 
-            ArrayListA0 uniformClassWorkloadA0 = generateA0ListWorkloadA0(generateStrategy(1000000,
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_U ||
+                    evaluationType == EvaluationType.GET_HARDCODED_U)
+                uniformClassWorkloadA0 = generateA0ListWorkloadA0(generateStrategy(sampleCount,
+                        SamplingStrategy.UNIFORM), classCache);
+
+
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_TL ||
+                    evaluationType == EvaluationType.GET_GENERIC_TL)
+                sameClassWorkload = generateArrayListWorkloadA0(generateStrategy(sampleCount,
+                        SamplingStrategy.SAME_TOP_LVL), classCache);
+
+
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_L ||
+                    evaluationType == EvaluationType.GET_GENERIC_L)
+                leafClassWorkload = generateArrayListWorkloadA0(generateStrategy(sampleCount,
+                        SamplingStrategy.SAME_LAST_LEAF), classCache);
+
+
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_U ||
+                    evaluationType == EvaluationType.GET_GENERIC_U)
+                uniformClassWorkload = generateArrayListWorkloadA0(generateStrategy(sampleCount,
                     SamplingStrategy.UNIFORM), classCache);
 
-            ArrayList<A0> sameClassWorkload = generateArrayListWorkloadA0(generateStrategy(1000000,
-                    SamplingStrategy.SAME_TOP_LVL), classCache);
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_TL)
+                for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(i).toString();
 
-            ArrayList<A0> leafClassWorkload = generateArrayListWorkloadA0(generateStrategy(1000000,
-                    SamplingStrategy.SAME_LAST_LEAF), classCache);
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_L)
+                for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(i).toString();
 
-            ArrayList<A0> uniformClassWorkload = generateArrayListWorkloadA0(generateStrategy(1000000,
-                    SamplingStrategy.UNIFORM), classCache);
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_U)
+                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(i).toString();
 
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_TL)
+                for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(i).toString();
 
-            for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(i).toString();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_L)
+                for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(i).toString();
 
-            for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(i).toString();
-
-            for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(i).toString();
-
-            for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(i).toString();
-
-            for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(i).toString();
-
-            for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(i).toString();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_U)
+                for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(i).toString();
         }
 
         // Run a GC call, to help guarantee that the first experiment will be `clean`
@@ -189,109 +263,142 @@ public class ClassHierarchy {
 
         /* These are the actual experiment runs, which count towards the final result */
         for (int i = 0; i < runCount; ++i) {
+            ArrayListA0 sameClassWorkloadA0 = null;
+            ArrayListA0 leafWorkloadA0 = null;
+            ArrayListA0 uniformClassWorkloadA0 = null;
+            ArrayList<A0> sameClassWorkload = null;
+            ArrayList<A0> leafClassWorkload = null;
+            ArrayList<A0> uniformClassWorkload = null;
+
+            String[] strategy;
+
             if (i % 20 == 0)
                 System.out.println("At iteration " + i + "...");
 
-            startTime = System.nanoTime();
-            ArrayListA0 sameClassWorkloadA0 = generateA0ListWorkloadA0( generateStrategy(1000000,
-                    SamplingStrategy.SAME_TOP_LVL), classCache);
-            time = System.nanoTime() - startTime;
-            updateResultMapEntry(scores, "Custom List, Top Level, Creation", time, runCount);
-            System.gc();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_TL ||
+                    evaluationType == EvaluationType.GET_GENERIC_TL) {
+                strategy = generateStrategy(sampleCount, SamplingStrategy.SAME_TOP_LVL);
+                startTime = System.nanoTime();
+                sameClassWorkload = generateArrayListWorkloadA0(strategy, classCache);
+                time = System.nanoTime() - startTime;
+                updateResultMapEntry(scores, "Generic List, Top Level, Creation", time, runCount);
+                System.gc();
+            }
 
-            startTime = System.nanoTime();
-            ArrayListA0 leafWorkloadA0 = generateA0ListWorkloadA0(generateStrategy(1000000,
-                    SamplingStrategy.SAME_LAST_LEAF), classCache);
-            time = System.nanoTime() - startTime;
-            updateResultMapEntry(scores, "Custom List, Leaf, Creation", time, runCount);
-            System.gc();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_L ||
+                    evaluationType == EvaluationType.GET_GENERIC_L) {
+                strategy = generateStrategy(sampleCount, SamplingStrategy.SAME_LAST_LEAF);
+                startTime = System.nanoTime();
+                leafClassWorkload = generateArrayListWorkloadA0(strategy, classCache);
+                time = System.nanoTime() - startTime;
+                updateResultMapEntry(scores, "Generic List, Leaf, Creation", time, runCount);
+                System.gc();
+            }
 
-            startTime = System.nanoTime();
-            ArrayListA0 uniformClassWorkloadA0 = generateA0ListWorkloadA0(generateStrategy(1000000,
-                    SamplingStrategy.UNIFORM), classCache);
-            time = System.nanoTime() - startTime;
-            updateResultMapEntry(scores, "Custom List, Uniform, Creation", time, runCount);
-            System.gc();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_U ||
+                    evaluationType == EvaluationType.GET_GENERIC_U) {
+                strategy = generateStrategy(sampleCount, SamplingStrategy.UNIFORM);
+                startTime = System.nanoTime();
+                uniformClassWorkload = generateArrayListWorkloadA0(strategy, classCache);
+                time = System.nanoTime() - startTime;
+                updateResultMapEntry(scores, "Generic List, Uniform, Creation", time, runCount);
+                System.gc();
+            }
 
-            startTime = System.nanoTime();
-            ArrayList<A0> sameClassWorkload = generateArrayListWorkloadA0(generateStrategy(1000000,
-                    SamplingStrategy.SAME_TOP_LVL), classCache);
-            time = System.nanoTime() - startTime;
-            updateResultMapEntry(scores, "Generic List, Top Level, Creation", time, runCount);
-            System.gc();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_TL ||
+                    evaluationType == EvaluationType.GET_HARDCODED_TL) {
+                strategy = generateStrategy(sampleCount, SamplingStrategy.SAME_TOP_LVL);
+                startTime = System.nanoTime();
+                sameClassWorkloadA0 = generateA0ListWorkloadA0(strategy, classCache);
+                time = System.nanoTime() - startTime;
+                updateResultMapEntry(scores, "Custom List, Top Level, Creation", time, runCount);
+                System.gc();
+            }
 
-            startTime = System.nanoTime();
-            ArrayList<A0> leafWorkload = generateArrayListWorkloadA0(generateStrategy(1000000,
-                    SamplingStrategy.SAME_LAST_LEAF), classCache);
-            time = System.nanoTime() - startTime;
-            updateResultMapEntry(scores, "Generic List, Leaf, Creation", time, runCount);
-            System.gc();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_L ||
+                    evaluationType == EvaluationType.GET_HARDCODED_L) {
+                strategy = generateStrategy(sampleCount, SamplingStrategy.SAME_LAST_LEAF);
+                startTime = System.nanoTime();
+                leafWorkloadA0 = generateA0ListWorkloadA0(strategy, classCache);
+                time = System.nanoTime() - startTime;
+                updateResultMapEntry(scores, "Custom List, Leaf, Creation", time, runCount);
+                System.gc();
+            }
 
-            startTime = System.nanoTime();
-            ArrayList<A0> uniformClassWorkload = generateArrayListWorkloadA0(generateStrategy(1000000,
-                    SamplingStrategy.UNIFORM), classCache);
-            time = System.nanoTime() - startTime;
-            updateResultMapEntry(scores, "Generic List, Uniform, Creation", time, runCount);
-            System.gc();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_U ||
+                    evaluationType == EvaluationType.GET_HARDCODED_U) {
+                strategy = generateStrategy(sampleCount, SamplingStrategy.UNIFORM);
+                startTime = System.nanoTime();
+                uniformClassWorkloadA0 = generateA0ListWorkloadA0(strategy, classCache);
+                time = System.nanoTime() - startTime;
+                updateResultMapEntry(scores, "Custom List, Uniform, Creation", time, runCount);
+                System.gc();
+            }
 
-            startTime = System.nanoTime();
-            for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(i).toString();
-            time = System.nanoTime() - startTime;
-            updateResultMapEntry(scores, "Custom List, Top Level, Retrieval", time, runCount);
-            System.gc();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_TL) {
+                startTime = System.nanoTime();
+                for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(i).toString();
+                time = System.nanoTime() - startTime;
+                updateResultMapEntry(scores, "Generic List, Top Level, Retrieval", time, runCount);
+                System.gc();
+            }
 
-            startTime = System.nanoTime();
-            for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(i).toString();
-            time = System.nanoTime() - startTime;
-            updateResultMapEntry(scores, "Custom List, Leaf, Retrieval", time, runCount);
-            System.gc();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_L) {
+                startTime = System.nanoTime();
+                for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(i).toString();
+                time = System.nanoTime() - startTime;
+                updateResultMapEntry(scores, "Generic List, Leaf, Retrieval", time, runCount);
+                System.gc();
+            }
 
-            startTime = System.nanoTime();
-            for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(i).toString();
-            time = System.nanoTime() - startTime;
-            updateResultMapEntry(scores, "Custom List, Uniform, Retrieval", time, runCount);
-            System.gc();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_U) {
+                startTime = System.nanoTime();
+                for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(i).toString();
+                time = System.nanoTime() - startTime;
+                updateResultMapEntry(scores, "Generic List, Uniform, Retrieval", time, runCount);
+                System.gc();
+            }
 
-            startTime = System.nanoTime();
-            for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(i).toString();
-            time = System.nanoTime() - startTime;
-            updateResultMapEntry(scores, "Generic List, Top Level, Retrieval", time, runCount);
-            System.gc();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_TL) {
+                startTime = System.nanoTime();
+                for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(i).toString();
+                time = System.nanoTime() - startTime;
+                updateResultMapEntry(scores, "Custom List, Top Level, Retrieval", time, runCount);
+                System.gc();
+            }
 
-            startTime = System.nanoTime();
-            for (int j = 0; j < leafWorkload.size(); ++j) leafWorkload.get(i).toString();
-            time = System.nanoTime() - startTime;
-            updateResultMapEntry(scores, "Generic List, Leaf, Retrieval", time, runCount);
-            System.gc();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_L) {
+                startTime = System.nanoTime();
+                for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(i).toString();
+                time = System.nanoTime() - startTime;
+                updateResultMapEntry(scores, "Custom List, Leaf, Retrieval", time, runCount);
+                System.gc();
+            }
 
-            startTime = System.nanoTime();
-            for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(i).toString();
-            time = System.nanoTime() - startTime;
-            updateResultMapEntry(scores, "Generic List, Uniform, Retrieval", time, runCount);
-            System.gc();
+            if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_U) {
+                startTime = System.nanoTime();
+                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(i).toString();
+                time = System.nanoTime() - startTime;
+                updateResultMapEntry(scores, "Custom List, Uniform, Retrieval", time, runCount);
+                System.gc();
+            }
         }
 
         return scores;
     }
-
 
     public static void main(String[] args) throws FileNotFoundException, ClassNotFoundException, InstantiationException,
             IllegalAccessException {
         ClassHierarchy classHierarchy = new ClassHierarchy("class_structure.json", "generated.classes");
 
         // This should be the number of experiment runs which are used to warm-up the system, but are not considered
-        int warmupRuns = 10;
+        int warmupRuns = 20;
         // These are the runs which contribute towards the final results
-        int runCount = 100;
+        int runCount = 200;
 
-        /* TODO: Initialize HashMap here - Done ✔ */
-        /* TODO: wrap in for loop, and average over time; discard first few runs ✔ */
-        /* TODO: call GC before each individual run ✔ */
-        /* TODO: add experiment for one leaf type ✔ */
-        /* TODO: initialize the ArrayList using a fixed 1M size */
-        /* TODO: -xmx 2GB // https://dzone.com/articles/enabling-and-analysing-the-garbage-collection-log // measure the amount of heap memory used */
         /* Create the special type ArrayListA0 workloads */
-        HashMap<String, Double> results =  classHierarchy.exectueBenchmarks(runCount, warmupRuns);
+        HashMap<String, Double> results =  classHierarchy.exectueBenchmarks(runCount, warmupRuns,
+                EvaluationType.ADD_HARDCODED_L,1000000);
 
         for (Map.Entry<String, Double> entry : results.entrySet())
             System.out.println(entry.getKey() + " --> " + entry.getValue() / 10e6 + " ms");
