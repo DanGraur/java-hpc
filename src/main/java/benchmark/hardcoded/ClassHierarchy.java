@@ -121,22 +121,20 @@ public class ClassHierarchy {
         return classCache;
     }
 
-    public ArrayListT<A0> generateArrayListWorkloadA0(String[] strategy, HashMap<String, Class> classCache)
-            throws IllegalAccessException, InstantiationException {
-        ArrayListT<A0> res = new ArrayListT<>(strategy.length);
+    public ArrayListT<A0> generateArrayListWorkloadA0(A0[] objects) {
+        ArrayListT<A0> res = new ArrayListT<>(objects.length);
 
-        for (String s : strategy)
-            res.add((A0) classCache.get(s).newInstance());
+        for (A0 a : objects)
+            res.add(a);
 
         return res;
     }
 
-    public ArrayListA0 generateA0ListWorkloadA0(String[] strategy, HashMap<String, Class> classCache)
-            throws IllegalAccessException, InstantiationException {
-        ArrayListA0 res = new ArrayListA0(strategy.length);
+    public ArrayListA0 generateA0ListWorkloadA0(A0[] objects) {
+        ArrayListA0 res = new ArrayListA0(objects.length);
 
-        for (String s : strategy)
-            res.add((A0) classCache.get(s).newInstance());
+        for (A0 a : objects)
+            res.add(a);
 
         return res;
     }
@@ -210,6 +208,16 @@ public class ClassHierarchy {
         return (String[]) strategy.toArray();
     }
 
+    private A0[] instantiateObjects(String[] strategy, HashMap<String, Class> classCache) throws IllegalAccessException,
+            InstantiationException {
+        A0[] instantiatedObjects = new A0[strategy.length];
+
+        for (int i = 0; i < strategy.length; ++i)
+            instantiatedObjects[i] = (A0) classCache.get(strategy[i]).newInstance();
+
+        return instantiatedObjects;
+    }
+
     /**
      * Updates an entry in a result hash map
      *
@@ -232,8 +240,6 @@ public class ClassHierarchy {
      *                        to avoid creating different uniform strategies
      * @return a hash map of the results
      * @throws ClassNotFoundException
-     * @throws InstantiationException
-     * @throws IllegalAccessException
      */
     public HashMap<String, Tuple<Double, Double>> exectueBenchmarks(int runCount, int warmupRuns,
                                                                     EvaluationType evaluationType, int sampleCount,
@@ -297,37 +303,37 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_TL ||
                     evaluationType == EvaluationType.GET_HARDCODED_TL)
-                sameClassWorkloadA0 = generateA0ListWorkloadA0(generateStrategy(sampleCount,
-                        SamplingStrategy.SAME_TOP_LVL), classCache);
+                sameClassWorkloadA0 = generateA0ListWorkloadA0(instantiateObjects(generateStrategy(sampleCount,
+                        SamplingStrategy.SAME_TOP_LVL), classCache));
 
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_L ||
                     evaluationType == EvaluationType.GET_HARDCODED_L)
-                leafWorkloadA0 = generateA0ListWorkloadA0(generateStrategy(sampleCount,
-                    SamplingStrategy.SAME_LAST_LEAF), classCache);
+                leafWorkloadA0 = generateA0ListWorkloadA0(instantiateObjects(generateStrategy(sampleCount,
+                    SamplingStrategy.SAME_LAST_LEAF), classCache));
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_U ||
                     evaluationType == EvaluationType.GET_HARDCODED_U)
-                uniformClassWorkloadA0 = generateA0ListWorkloadA0(generateStrategy(sampleCount,
-                        SamplingStrategy.UNIFORM), classCache);
+                uniformClassWorkloadA0 = generateA0ListWorkloadA0(instantiateObjects(generateStrategy(sampleCount,
+                        SamplingStrategy.UNIFORM), classCache));
 
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_TL ||
                     evaluationType == EvaluationType.GET_GENERIC_TL)
-                sameClassWorkload = generateArrayListWorkloadA0(generateStrategy(sampleCount,
-                        SamplingStrategy.SAME_TOP_LVL), classCache);
+                sameClassWorkload = generateArrayListWorkloadA0(instantiateObjects(generateStrategy(sampleCount,
+                        SamplingStrategy.SAME_TOP_LVL), classCache));
 
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_L ||
                     evaluationType == EvaluationType.GET_GENERIC_L)
-                leafClassWorkload = generateArrayListWorkloadA0(generateStrategy(sampleCount,
-                        SamplingStrategy.SAME_LAST_LEAF), classCache);
+                leafClassWorkload = generateArrayListWorkloadA0(instantiateObjects(generateStrategy(sampleCount,
+                        SamplingStrategy.SAME_LAST_LEAF), classCache));
 
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_U ||
                     evaluationType == EvaluationType.GET_GENERIC_U)
-                uniformClassWorkload = generateArrayListWorkloadA0(generateStrategy(sampleCount,
-                    SamplingStrategy.UNIFORM), classCache);
+                uniformClassWorkload = generateArrayListWorkloadA0(instantiateObjects(generateStrategy(sampleCount,
+                    SamplingStrategy.UNIFORM), classCache));
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_TL)
                 for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(i).toString();
@@ -368,8 +374,9 @@ public class ClassHierarchy {
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_TL ||
                     evaluationType == EvaluationType.GET_GENERIC_TL) {
                 strategy = generateStrategy(sampleCount, SamplingStrategy.SAME_TOP_LVL);
+                A0[] objects = instantiateObjects(strategy, classCache);
                 startTime = System.nanoTime();
-                sameClassWorkload = generateArrayListWorkloadA0(strategy, classCache);
+                sameClassWorkload = generateArrayListWorkloadA0(objects);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Top Level, Creation", time);
                 System.gc();
@@ -378,8 +385,9 @@ public class ClassHierarchy {
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_L ||
                     evaluationType == EvaluationType.GET_GENERIC_L) {
                 strategy = generateStrategy(sampleCount, SamplingStrategy.SAME_LAST_LEAF);
+                A0[] objects = instantiateObjects(strategy, classCache);
                 startTime = System.nanoTime();
-                leafClassWorkload = generateArrayListWorkloadA0(strategy, classCache);
+                leafClassWorkload = generateArrayListWorkloadA0(objects);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Leaf, Creation", time);
                 System.gc();
@@ -389,8 +397,9 @@ public class ClassHierarchy {
                     evaluationType == EvaluationType.GET_GENERIC_U) {
                 strategy = uniformStrategy == null ? generateStrategy(sampleCount, SamplingStrategy.UNIFORM) :
                         uniformStrategy;
+                A0[] objects = instantiateObjects(strategy, classCache);
                 startTime = System.nanoTime();
-                uniformClassWorkload = generateArrayListWorkloadA0(strategy, classCache);
+                uniformClassWorkload = generateArrayListWorkloadA0(objects);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Uniform, Creation", time);
                 System.gc();
@@ -399,8 +408,9 @@ public class ClassHierarchy {
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_TL ||
                     evaluationType == EvaluationType.GET_HARDCODED_TL) {
                 strategy = generateStrategy(sampleCount, SamplingStrategy.SAME_TOP_LVL);
+                A0[] objects = instantiateObjects(strategy, classCache);
                 startTime = System.nanoTime();
-                sameClassWorkloadA0 = generateA0ListWorkloadA0(strategy, classCache);
+                sameClassWorkloadA0 = generateA0ListWorkloadA0(objects);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Top Level, Creation", time);
                 System.gc();
@@ -409,8 +419,9 @@ public class ClassHierarchy {
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_L ||
                     evaluationType == EvaluationType.GET_HARDCODED_L) {
                 strategy = generateStrategy(sampleCount, SamplingStrategy.SAME_LAST_LEAF);
+                A0[] objects = instantiateObjects(strategy, classCache);
                 startTime = System.nanoTime();
-                leafWorkloadA0 = generateA0ListWorkloadA0(strategy, classCache);
+                leafWorkloadA0 = generateA0ListWorkloadA0(objects);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Leaf, Creation", time);
                 System.gc();
@@ -420,8 +431,9 @@ public class ClassHierarchy {
                     evaluationType == EvaluationType.GET_HARDCODED_U) {
                 strategy = uniformStrategy == null ? generateStrategy(sampleCount, SamplingStrategy.UNIFORM) :
                         uniformStrategy;
+                A0[] objects = instantiateObjects(strategy, classCache);
                 startTime = System.nanoTime();
-                uniformClassWorkloadA0 = generateA0ListWorkloadA0(strategy, classCache);
+                uniformClassWorkloadA0 = generateA0ListWorkloadA0(objects);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Uniform, Creation", time);
                 System.gc();
@@ -493,9 +505,9 @@ public class ClassHierarchy {
         ClassHierarchy classHierarchy = new ClassHierarchy("class_structure.json", "generated.classes");
 
         // This should be the number of experiment runs which are used to warm-up the system, but are not considered
-        int warmupRuns = 0;
+        int warmupRuns = 1;
         // These are the runs which contribute towards the final results
-        int runCount = 20;
+        int runCount = 21;
 
         /* Run the experiments */
         String[] strategy = ClassHierarchy.deserializeStrategy("uniform_strategy.dat");
