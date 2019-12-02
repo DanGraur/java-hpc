@@ -248,11 +248,44 @@ public class ClassHierarchy {
         long startTime;
         long time;
         HashMap<String, ArrayList<Long>> scores = new HashMap<>();
+        HashMap<String, A0[]> workloads = new HashMap<>();
         HashMap<String, Class> classCache = populateClassCache();
 
+        /* Populate the workload map */
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_TL ||
+                evaluationType == EvaluationType.GET_HARDCODED_TL ||
+                evaluationType == EvaluationType.ADD_GENERIC_TL ||
+                evaluationType == EvaluationType.GET_GENERIC_TL) {
+            A0[] workload = instantiateObjects(generateStrategy(sampleCount, SamplingStrategy.SAME_TOP_LVL),
+                    classCache);
+            workloads.put("Top Level", workload);
+
+        }
+
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_L ||
+                evaluationType == EvaluationType.GET_HARDCODED_L ||
+                evaluationType == EvaluationType.ADD_GENERIC_L ||
+                evaluationType == EvaluationType.GET_GENERIC_L) {
+            A0[] workload = instantiateObjects(generateStrategy(sampleCount, SamplingStrategy.SAME_LAST_LEAF),
+                    classCache);
+            workloads.put("Leaf", workload);
+
+        }
+
+        if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_U ||
+                evaluationType == EvaluationType.GET_HARDCODED_U ||
+                evaluationType == EvaluationType.ADD_GENERIC_U ||
+                evaluationType == EvaluationType.GET_GENERIC_U) {
+            A0[] workload = instantiateObjects(uniformStrategy == null ? generateStrategy(
+                    sampleCount, SamplingStrategy.UNIFORM) : uniformStrategy, classCache);
+            workloads.put("Uniform", workload);
+        }
+
+        /* Populate the result map */
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_TL ||
                 evaluationType == EvaluationType.GET_HARDCODED_TL)
             scores.put("Custom List, Top Level, Creation", new ArrayList<>());
+
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_L ||
                 evaluationType == EvaluationType.GET_HARDCODED_L)
@@ -268,7 +301,7 @@ public class ClassHierarchy {
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_L ||
                 evaluationType == EvaluationType.GET_GENERIC_L)
-            scores.put("Generic List, Leaf, Creation- 1", new ArrayList<>());
+            scores.put("Generic List, Leaf, Creation", new ArrayList<>());
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_U ||
                 evaluationType == EvaluationType.GET_GENERIC_U)
@@ -303,37 +336,30 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_TL ||
                     evaluationType == EvaluationType.GET_HARDCODED_TL)
-                sameClassWorkloadA0 = generateA0ListWorkloadA0(instantiateObjects(generateStrategy(sampleCount,
-                        SamplingStrategy.SAME_TOP_LVL), classCache));
+                sameClassWorkloadA0 = generateA0ListWorkloadA0(workloads.get("Top Level"));
 
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_L ||
                     evaluationType == EvaluationType.GET_HARDCODED_L)
-                leafWorkloadA0 = generateA0ListWorkloadA0(instantiateObjects(generateStrategy(sampleCount,
-                    SamplingStrategy.SAME_LAST_LEAF), classCache));
+                leafWorkloadA0 = generateA0ListWorkloadA0(workloads.get("Leaf"));
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_U ||
                     evaluationType == EvaluationType.GET_HARDCODED_U)
-                uniformClassWorkloadA0 = generateA0ListWorkloadA0(instantiateObjects(generateStrategy(sampleCount,
-                        SamplingStrategy.UNIFORM), classCache));
+                uniformClassWorkloadA0 = generateA0ListWorkloadA0(workloads.get("Uniform"));
 
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_TL ||
                     evaluationType == EvaluationType.GET_GENERIC_TL)
-                sameClassWorkload = generateArrayListWorkloadA0(instantiateObjects(generateStrategy(sampleCount,
-                        SamplingStrategy.SAME_TOP_LVL), classCache));
+                sameClassWorkload = generateArrayListWorkloadA0(workloads.get("Top Level"));
 
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_L ||
                     evaluationType == EvaluationType.GET_GENERIC_L)
-                leafClassWorkload = generateArrayListWorkloadA0(instantiateObjects(generateStrategy(sampleCount,
-                        SamplingStrategy.SAME_LAST_LEAF), classCache));
-
+                leafClassWorkload = generateArrayListWorkloadA0(workloads.get("Leaf"));
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_U ||
                     evaluationType == EvaluationType.GET_GENERIC_U)
-                uniformClassWorkload = generateArrayListWorkloadA0(instantiateObjects(generateStrategy(sampleCount,
-                    SamplingStrategy.UNIFORM), classCache));
+                uniformClassWorkload = generateArrayListWorkloadA0(workloads.get("Uniform"));
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_TL)
                 for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(i).toString();
@@ -373,10 +399,8 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_TL ||
                     evaluationType == EvaluationType.GET_GENERIC_TL) {
-                strategy = generateStrategy(sampleCount, SamplingStrategy.SAME_TOP_LVL);
-                A0[] objects = instantiateObjects(strategy, classCache);
                 startTime = System.nanoTime();
-                sameClassWorkload = generateArrayListWorkloadA0(objects);
+                sameClassWorkload = generateArrayListWorkloadA0(workloads.get("Top Level"));
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Top Level, Creation", time);
                 System.gc();
@@ -384,10 +408,8 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_L ||
                     evaluationType == EvaluationType.GET_GENERIC_L) {
-                strategy = generateStrategy(sampleCount, SamplingStrategy.SAME_LAST_LEAF);
-                A0[] objects = instantiateObjects(strategy, classCache);
                 startTime = System.nanoTime();
-                leafClassWorkload = generateArrayListWorkloadA0(objects);
+                leafClassWorkload = generateArrayListWorkloadA0(workloads.get("Leaf"));
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Leaf, Creation", time);
                 System.gc();
@@ -395,11 +417,8 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_U ||
                     evaluationType == EvaluationType.GET_GENERIC_U) {
-                strategy = uniformStrategy == null ? generateStrategy(sampleCount, SamplingStrategy.UNIFORM) :
-                        uniformStrategy;
-                A0[] objects = instantiateObjects(strategy, classCache);
                 startTime = System.nanoTime();
-                uniformClassWorkload = generateArrayListWorkloadA0(objects);
+                uniformClassWorkload = generateArrayListWorkloadA0(workloads.get("Uniform"));
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Uniform, Creation", time);
                 System.gc();
@@ -407,10 +426,8 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_TL ||
                     evaluationType == EvaluationType.GET_HARDCODED_TL) {
-                strategy = generateStrategy(sampleCount, SamplingStrategy.SAME_TOP_LVL);
-                A0[] objects = instantiateObjects(strategy, classCache);
                 startTime = System.nanoTime();
-                sameClassWorkloadA0 = generateA0ListWorkloadA0(objects);
+                sameClassWorkloadA0 = generateA0ListWorkloadA0(workloads.get("Top Level"));
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Top Level, Creation", time);
                 System.gc();
@@ -418,10 +435,8 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_L ||
                     evaluationType == EvaluationType.GET_HARDCODED_L) {
-                strategy = generateStrategy(sampleCount, SamplingStrategy.SAME_LAST_LEAF);
-                A0[] objects = instantiateObjects(strategy, classCache);
                 startTime = System.nanoTime();
-                leafWorkloadA0 = generateA0ListWorkloadA0(objects);
+                leafWorkloadA0 = generateA0ListWorkloadA0(workloads.get("Leaf"));
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Leaf, Creation", time);
                 System.gc();
@@ -429,11 +444,8 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_U ||
                     evaluationType == EvaluationType.GET_HARDCODED_U) {
-                strategy = uniformStrategy == null ? generateStrategy(sampleCount, SamplingStrategy.UNIFORM) :
-                        uniformStrategy;
-                A0[] objects = instantiateObjects(strategy, classCache);
                 startTime = System.nanoTime();
-                uniformClassWorkloadA0 = generateA0ListWorkloadA0(objects);
+                uniformClassWorkloadA0 = generateA0ListWorkloadA0(workloads.get("Uniform"));
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Uniform, Creation", time);
                 System.gc();
