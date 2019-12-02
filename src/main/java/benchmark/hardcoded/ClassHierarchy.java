@@ -91,6 +91,7 @@ public class ClassHierarchy {
         return res;
     }
 
+
     /**
      * Get the total number of generated classes
      *
@@ -120,7 +121,6 @@ public class ClassHierarchy {
         return classCache;
     }
 
-    /* TODO: need to see if this also works with Generics, i.e. change hard-coded A0 to T */
     public ArrayListT<A0> generateArrayListWorkloadA0(String[] strategy, HashMap<String, Class> classCache)
             throws IllegalAccessException, InstantiationException {
         ArrayListT<A0> res = new ArrayListT<>(strategy.length);
@@ -131,7 +131,6 @@ public class ClassHierarchy {
         return res;
     }
 
-    /* TODO: need to see if this also works with Generics, i.e. change hard-coded A0 to T */
     public ArrayListA0 generateA0ListWorkloadA0(String[] strategy, HashMap<String, Class> classCache)
             throws IllegalAccessException, InstantiationException {
         ArrayListA0 res = new ArrayListA0(strategy.length);
@@ -142,59 +141,75 @@ public class ClassHierarchy {
         return res;
     }
 
-    private void updateResultMapEntry(HashMap<String, Double> resultMap, String key, long newResult, int runs) {
-        resultMap.put(key, resultMap.get(key) + (newResult / (double) runs));
+    /**
+     * Compute the mean and standard deviation of a list of integer values.
+     *
+     * @param times a list of values of the Long type
+     * @return a tuple containing the mean on the first position and the standard deviation on the second position
+     */
+    public Tuple<Double, Double> getMeanAndStdDev(ArrayList<Long> times) {
+        int size = times.size();
+
+        double meanVal = times.stream().reduce((Long x, Long y) -> x + y).get() / (double) size;
+        double stdDev = Math.sqrt(times.stream().mapToDouble((Long x) -> (Math.pow(x - meanVal, 2.0))).sum() /
+                (size)); // (size - 1)
+
+        return new Tuple<>(meanVal, stdDev);
     }
 
-    public HashMap<String, Double> exectueBenchmarks(int runCount, int warmupRuns, EvaluationType evaluationType,
-                                                     int sampleCount) throws ClassNotFoundException,
-            InstantiationException, IllegalAccessException {
+    private void updateResultMapEntry(HashMap<String, ArrayList<Long>> resultMap, String key, long newResult) {
+        resultMap.get(key).add(newResult);
+    }
+
+    public HashMap<String, Tuple<Double, Double>> exectueBenchmarks(int runCount, int warmupRuns,
+                                                                    EvaluationType evaluationType, int sampleCount)
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException {
         long startTime;
         long time;
-        HashMap<String, Double> scores = new HashMap<>();
+        HashMap<String, ArrayList<Long>> scores = new HashMap<>();
         HashMap<String, Class> classCache = populateClassCache();
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_TL ||
                 evaluationType == EvaluationType.GET_HARDCODED_TL)
-            scores.put("Custom List, Top Level, Creation", 0.0);
+            scores.put("Custom List, Top Level, Creation", new ArrayList<>());
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_L ||
                 evaluationType == EvaluationType.GET_HARDCODED_L)
-            scores.put("Custom List, Leaf, Creation", 0.0);
+            scores.put("Custom List, Leaf, Creation", new ArrayList<>());
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_U ||
                 evaluationType == EvaluationType.GET_HARDCODED_U)
-            scores.put("Custom List, Uniform, Creation", 0.0);
+            scores.put("Custom List, Uniform, Creation", new ArrayList<>());
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_TL ||
                 evaluationType == EvaluationType.GET_GENERIC_TL)
-            scores.put("Generic List, Top Level, Creation", 0.0);
+            scores.put("Generic List, Top Level, Creation", new ArrayList<>());
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_L ||
                 evaluationType == EvaluationType.GET_GENERIC_L)
-            scores.put("Generic List, Leaf, Creation", 0.0);
+            scores.put("Generic List, Leaf, Creation- 1", new ArrayList<>());
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_U ||
                 evaluationType == EvaluationType.GET_GENERIC_U)
-            scores.put("Generic List, Uniform, Creation", 0.0);
+            scores.put("Generic List, Uniform, Creation", new ArrayList<>());
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_TL)
-            scores.put("Custom List, Top Level, Retrieval", 0.0);
+            scores.put("Custom List, Top Level, Retrieval", new ArrayList<>());
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_L)
-            scores.put("Custom List, Leaf, Retrieval", 0.0);
+            scores.put("Custom List, Leaf, Retrieval", new ArrayList<>());
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_U)
-            scores.put("Custom List, Uniform, Retrieval", 0.0);
+            scores.put("Custom List, Uniform, Retrieval", new ArrayList<>());
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_TL)
-            scores.put("Generic List, Top Level, Retrieval", 0.0);
+            scores.put("Generic List, Top Level, Retrieval", new ArrayList<>());
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_L)
-            scores.put("Generic List, Leaf, Retrieval", 0.0);
+            scores.put("Generic List, Leaf, Retrieval", new ArrayList<>());
 
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_U)
-            scores.put("Generic List, Uniform, Retrieval", 0.0);
+            scores.put("Generic List, Uniform, Retrieval", new ArrayList<>());
 
         /* These are the actual experiment runs, which count towards the final result */
         for (int i = 0; i < warmupRuns; ++i) {
@@ -281,7 +296,7 @@ public class ClassHierarchy {
                 startTime = System.nanoTime();
                 sameClassWorkload = generateArrayListWorkloadA0(strategy, classCache);
                 time = System.nanoTime() - startTime;
-                updateResultMapEntry(scores, "Generic List, Top Level, Creation", time, runCount);
+                updateResultMapEntry(scores, "Generic List, Top Level, Creation", time);
                 System.gc();
             }
 
@@ -291,7 +306,7 @@ public class ClassHierarchy {
                 startTime = System.nanoTime();
                 leafClassWorkload = generateArrayListWorkloadA0(strategy, classCache);
                 time = System.nanoTime() - startTime;
-                updateResultMapEntry(scores, "Generic List, Leaf, Creation", time, runCount);
+                updateResultMapEntry(scores, "Generic List, Leaf, Creation", time);
                 System.gc();
             }
 
@@ -301,7 +316,7 @@ public class ClassHierarchy {
                 startTime = System.nanoTime();
                 uniformClassWorkload = generateArrayListWorkloadA0(strategy, classCache);
                 time = System.nanoTime() - startTime;
-                updateResultMapEntry(scores, "Generic List, Uniform, Creation", time, runCount);
+                updateResultMapEntry(scores, "Generic List, Uniform, Creation", time);
                 System.gc();
             }
 
@@ -311,7 +326,7 @@ public class ClassHierarchy {
                 startTime = System.nanoTime();
                 sameClassWorkloadA0 = generateA0ListWorkloadA0(strategy, classCache);
                 time = System.nanoTime() - startTime;
-                updateResultMapEntry(scores, "Custom List, Top Level, Creation", time, runCount);
+                updateResultMapEntry(scores, "Custom List, Top Level, Creation", time);
                 System.gc();
             }
 
@@ -321,7 +336,7 @@ public class ClassHierarchy {
                 startTime = System.nanoTime();
                 leafWorkloadA0 = generateA0ListWorkloadA0(strategy, classCache);
                 time = System.nanoTime() - startTime;
-                updateResultMapEntry(scores, "Custom List, Leaf, Creation", time, runCount);
+                updateResultMapEntry(scores, "Custom List, Leaf, Creation", time);
                 System.gc();
             }
 
@@ -331,7 +346,7 @@ public class ClassHierarchy {
                 startTime = System.nanoTime();
                 uniformClassWorkloadA0 = generateA0ListWorkloadA0(strategy, classCache);
                 time = System.nanoTime() - startTime;
-                updateResultMapEntry(scores, "Custom List, Uniform, Creation", time, runCount);
+                updateResultMapEntry(scores, "Custom List, Uniform, Creation", time);
                 System.gc();
             }
 
@@ -339,7 +354,7 @@ public class ClassHierarchy {
                 startTime = System.nanoTime();
                 for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(i).toString();
                 time = System.nanoTime() - startTime;
-                updateResultMapEntry(scores, "Generic List, Top Level, Retrieval", time, runCount);
+                updateResultMapEntry(scores, "Generic List, Top Level, Retrieval", time);
                 System.gc();
             }
 
@@ -347,7 +362,7 @@ public class ClassHierarchy {
                 startTime = System.nanoTime();
                 for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(i).toString();
                 time = System.nanoTime() - startTime;
-                updateResultMapEntry(scores, "Generic List, Leaf, Retrieval", time, runCount);
+                updateResultMapEntry(scores, "Generic List, Leaf, Retrieval", time);
                 System.gc();
             }
 
@@ -355,7 +370,7 @@ public class ClassHierarchy {
                 startTime = System.nanoTime();
                 for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(i).toString();
                 time = System.nanoTime() - startTime;
-                updateResultMapEntry(scores, "Generic List, Uniform, Retrieval", time, runCount);
+                updateResultMapEntry(scores, "Generic List, Uniform, Retrieval", time);
                 System.gc();
             }
 
@@ -363,7 +378,7 @@ public class ClassHierarchy {
                 startTime = System.nanoTime();
                 for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(i).toString();
                 time = System.nanoTime() - startTime;
-                updateResultMapEntry(scores, "Custom List, Top Level, Retrieval", time, runCount);
+                updateResultMapEntry(scores, "Custom List, Top Level, Retrieval", time);
                 System.gc();
             }
 
@@ -371,7 +386,7 @@ public class ClassHierarchy {
                 startTime = System.nanoTime();
                 for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(i).toString();
                 time = System.nanoTime() - startTime;
-                updateResultMapEntry(scores, "Custom List, Leaf, Retrieval", time, runCount);
+                updateResultMapEntry(scores, "Custom List, Leaf, Retrieval", time);
                 System.gc();
             }
 
@@ -379,12 +394,21 @@ public class ClassHierarchy {
                 startTime = System.nanoTime();
                 for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(i).toString();
                 time = System.nanoTime() - startTime;
-                updateResultMapEntry(scores, "Custom List, Uniform, Retrieval", time, runCount);
+                updateResultMapEntry(scores, "Custom List, Uniform, Retrieval", time);
                 System.gc();
             }
         }
 
-        return scores;
+        HashMap<String, Tuple<Double, Double>> finalScores = new HashMap<>();
+
+        for (Map.Entry<String, ArrayList<Long>> experimentResults : scores.entrySet()) {
+            finalScores.put(
+                    experimentResults.getKey(),
+                    getMeanAndStdDev(experimentResults.getValue())
+            );
+        }
+
+        return finalScores;
     }
 
     public static void main(String[] args) throws FileNotFoundException, ClassNotFoundException, InstantiationException,
@@ -392,17 +416,18 @@ public class ClassHierarchy {
         ClassHierarchy classHierarchy = new ClassHierarchy("class_structure.json", "generated.classes");
 
         // This should be the number of experiment runs which are used to warm-up the system, but are not considered
-        int warmupRuns = 100;
+        int warmupRuns = 1;
         // These are the runs which contribute towards the final results
-        int runCount = 1000;
+        int runCount = 20;
 
         /* Run the experiments */
-        HashMap<String, Double> results =  classHierarchy.exectueBenchmarks(runCount, warmupRuns,
+        HashMap<String, Tuple<Double, Double>> results =  classHierarchy.exectueBenchmarks(runCount, warmupRuns,
                 EvaluationType.GET_GENERIC_U,1000000);
 
         /* Print the results */
-        for (Map.Entry<String, Double> entry : results.entrySet())
-            System.out.println(entry.getKey() + " --> " + entry.getValue() / 10e6 + " ms");
+        for (Map.Entry<String, Tuple<Double, Double>> entry : results.entrySet())
+            System.out.println(entry.getKey() + " --> (" + entry.getValue().getFirst() / 10e6 + " ms, " +
+                    entry.getValue().getSecond() / 10e6 + " ms)");
     }
 
 }
