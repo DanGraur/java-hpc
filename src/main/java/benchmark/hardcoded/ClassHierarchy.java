@@ -5,8 +5,7 @@ import benchmark.hardcoded.types.ArrayListT;
 import com.google.gson.Gson;
 import generated.classes.A0;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.util.*;
 
 enum EvaluationType {
@@ -32,6 +31,8 @@ enum SamplingStrategy {
 }
 
 public class ClassHierarchy {
+    /* The size of the block which is used during strategy storage */
+    private static final int BLOCK_SIZE = 100000;
 
     private List<String>[] classHierarchy;
     private String packagePath;
@@ -90,7 +91,6 @@ public class ClassHierarchy {
 
         return res;
     }
-
 
     /**
      * Get the total number of generated classes
@@ -157,12 +157,87 @@ public class ClassHierarchy {
         return new Tuple<>(meanVal, stdDev);
     }
 
+    public static void serializeStrategy(String[] strategy, String path) throws IOException {
+        new ObjectOutputStream(new FileOutputStream(path)).writeObject(strategy);
+    }
+
+    public static String[] deserializeStrategy(String path) throws IOException, ClassNotFoundException {
+        return (String []) new ObjectInputStream(new FileInputStream(path)).readObject();
+    }
+
+    /**
+     * This method writes a strategy to one or more files and returns it.
+     *
+     * @param strategy an array of strings which defines the strategy
+     * @param path the path to the directory where the strategy will be saved
+     * @param fileName the base name of the files which will store the strategy
+     * @return the read strategy
+     */
+    public static void writeStrategy(String[] strategy, String path, String fileName) throws IOException {
+        Gson gson = new Gson();
+
+        int parts = strategy.length / BLOCK_SIZE;
+        parts += strategy.length % BLOCK_SIZE == 0 ? 0 : 1;
+
+        for (int i = 0; i < parts; ++i) {
+            String name = path + "/" + fileName + "_" + i + ".json";
+            gson.toJson(Arrays.copyOfRange(strategy, i * BLOCK_SIZE,
+                    (i + 1) * BLOCK_SIZE < strategy.length ? (i + 1) * BLOCK_SIZE : strategy.length),
+                    new FileWriter(name));
+        }
+    }
+
+    /**
+     * This method reads a strategy from a file and returns it.
+     *
+     * @param path the path to the file containing the strategy
+     * @param baseName the base name of the files storing the strategy
+     * @param blockCount the number of files used to store the strategy
+     * @return the read strategy
+     */
+    public static String[] readStrategy(String path, String baseName, int blockCount) throws FileNotFoundException {
+        Gson gson = new Gson();
+        ArrayList<String> strategy = new ArrayList<>();
+
+
+        for (int i = 0; i < blockCount; ++i) {
+            String name = path + "/" + baseName + "_" + i + ".json";
+            strategy.addAll(
+                    gson.fromJson(new FileReader(name), ArrayList.class)
+            );
+        }
+
+        return (String[]) strategy.toArray();
+    }
+
+    /**
+     * Updates an entry in a result hash map
+     *
+     * @param resultMap the hash map
+     * @param key the key of the experiment
+     * @param newResult the result to be used for updating
+     */
     private void updateResultMapEntry(HashMap<String, ArrayList<Long>> resultMap, String key, long newResult) {
         resultMap.get(key).add(newResult);
     }
 
+    /**
+     * Method which executes the benchmarks
+     *
+     * @param runCount the number of runs per experiment
+     * @param warmupRuns the number of warmup runs (these are not taken into consideration towards the final result)
+     * @param evaluationType the type of experiment being executed
+     * @param sampleCount the number of objects to be used as workloads
+     * @param uniformStrategy in case a UNIFORM workload is employed, this parameter may be optionally provided
+     *                        to avoid creating different uniform strategies
+     * @return a hash map of the results
+     * @throws ClassNotFoundException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
     public HashMap<String, Tuple<Double, Double>> exectueBenchmarks(int runCount, int warmupRuns,
-                                                                    EvaluationType evaluationType, int sampleCount)
+                                                                    EvaluationType evaluationType, int sampleCount,
+                                                                    String[] uniformStrategy)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException {
         long startTime;
         long time;
@@ -312,7 +387,8 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_U ||
                     evaluationType == EvaluationType.GET_GENERIC_U) {
-                strategy = generateStrategy(sampleCount, SamplingStrategy.UNIFORM);
+                strategy = uniformStrategy == null ? generateStrategy(sampleCount, SamplingStrategy.UNIFORM) :
+                        uniformStrategy;
                 startTime = System.nanoTime();
                 uniformClassWorkload = generateArrayListWorkloadA0(strategy, classCache);
                 time = System.nanoTime() - startTime;
@@ -342,7 +418,8 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_U ||
                     evaluationType == EvaluationType.GET_HARDCODED_U) {
-                strategy = generateStrategy(sampleCount, SamplingStrategy.UNIFORM);
+                strategy = uniformStrategy == null ? generateStrategy(sampleCount, SamplingStrategy.UNIFORM) :
+                        uniformStrategy;
                 startTime = System.nanoTime();
                 uniformClassWorkloadA0 = generateA0ListWorkloadA0(strategy, classCache);
                 time = System.nanoTime() - startTime;
@@ -411,18 +488,19 @@ public class ClassHierarchy {
         return finalScores;
     }
 
-    public static void main(String[] args) throws FileNotFoundException, ClassNotFoundException, InstantiationException,
+    public static void main(String[] args) throws IOException, ClassNotFoundException, InstantiationException,
             IllegalAccessException {
         ClassHierarchy classHierarchy = new ClassHierarchy("class_structure.json", "generated.classes");
 
         // This should be the number of experiment runs which are used to warm-up the system, but are not considered
-        int warmupRuns = 1;
+        int warmupRuns = 0;
         // These are the runs which contribute towards the final results
         int runCount = 20;
 
         /* Run the experiments */
+        String[] strategy = ClassHierarchy.deserializeStrategy("uniform_strategy.dat");
         HashMap<String, Tuple<Double, Double>> results =  classHierarchy.exectueBenchmarks(runCount, warmupRuns,
-                EvaluationType.GET_GENERIC_U,1000000);
+                EvaluationType.GET_HARDCODED_U,1000000, strategy);
 
         /* Print the results */
         for (Map.Entry<String, Tuple<Double, Double>> entry : results.entrySet())
