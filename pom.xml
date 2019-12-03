@@ -35,7 +35,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>benchmark.hardcoded.ClassHierarchy.class</mainClass>
+                            <mainClass>benchmark.hardcoded.ClassHierarchy</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

@@ -149,8 +149,7 @@ public class ClassHierarchy {
         int size = times.size();
 
         double meanVal = times.stream().reduce((Long x, Long y) -> x + y).get() / (double) size;
-        double stdDev = Math.sqrt(times.stream().mapToDouble((Long x) -> (Math.pow(x - meanVal, 2.0))).sum() /
-                (size)); // (size - 1)
+        double stdDev = Math.sqrt(times.stream().mapToDouble((Long x) -> (Math.pow(x - meanVal, 2.0))).sum() / size); // (size - 1)
 
         return new Tuple<>(meanVal, stdDev);
     }
@@ -286,7 +285,6 @@ public class ClassHierarchy {
                 evaluationType == EvaluationType.GET_HARDCODED_TL)
             scores.put("Custom List, Top Level, Creation", new ArrayList<>());
 
-
         if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_L ||
                 evaluationType == EvaluationType.GET_HARDCODED_L)
             scores.put("Custom List, Leaf, Creation", new ArrayList<>());
@@ -338,7 +336,6 @@ public class ClassHierarchy {
                     evaluationType == EvaluationType.GET_HARDCODED_TL)
                 sameClassWorkloadA0 = generateA0ListWorkloadA0(workloads.get("Top Level"));
 
-
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_HARDCODED_L ||
                     evaluationType == EvaluationType.GET_HARDCODED_L)
                 leafWorkloadA0 = generateA0ListWorkloadA0(workloads.get("Leaf"));
@@ -352,7 +349,6 @@ public class ClassHierarchy {
                     evaluationType == EvaluationType.GET_GENERIC_TL)
                 sameClassWorkload = generateArrayListWorkloadA0(workloads.get("Top Level"));
 
-
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_L ||
                     evaluationType == EvaluationType.GET_GENERIC_L)
                 leafClassWorkload = generateArrayListWorkloadA0(workloads.get("Leaf"));
@@ -361,23 +357,24 @@ public class ClassHierarchy {
                     evaluationType == EvaluationType.GET_GENERIC_U)
                 uniformClassWorkload = generateArrayListWorkloadA0(workloads.get("Uniform"));
 
+
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_TL)
-                for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(i).toString();
+                for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(i);
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_L)
-                for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(i).toString();
+                for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(i);
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_U)
-                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(i).toString();
+                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(i);
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_TL)
-                for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(i).toString();
+                for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(i);
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_L)
-                for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(i).toString();
+                for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(i);
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_U)
-                for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(i).toString();
+                for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(i);
         }
 
         // Run a GC call, to help guarantee that the first experiment will be `clean`
@@ -391,8 +388,6 @@ public class ClassHierarchy {
             ArrayListT<A0> sameClassWorkload = null;
             ArrayListT<A0> leafClassWorkload = null;
             ArrayListT<A0> uniformClassWorkload = null;
-
-            String[] strategy;
 
             if (i % 20 == 0)
                 System.out.println("At iteration " + i + "...");
@@ -453,7 +448,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_TL) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(i).toString();
+                for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(i);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Top Level, Retrieval", time);
                 System.gc();
@@ -461,7 +456,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_L) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(i).toString();
+                for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(i);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Leaf, Retrieval", time);
                 System.gc();
@@ -469,7 +464,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_U) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(i).toString();
+                for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(i);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Uniform, Retrieval", time);
                 System.gc();
@@ -477,7 +472,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_TL) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(i).toString();
+                for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(i);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Top Level, Retrieval", time);
                 System.gc();
@@ -485,7 +480,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_L) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(i).toString();
+                for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(i);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Leaf, Retrieval", time);
                 System.gc();
@@ -493,7 +488,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_U) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(i).toString();
+                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(i);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Uniform, Retrieval", time);
                 System.gc();
@@ -512,24 +507,62 @@ public class ClassHierarchy {
         return finalScores;
     }
 
+    public static EvaluationType findExperiment(String experientName) {
+        switch (experientName.toLowerCase()) {
+            case "GET_GENERIC_TL": return EvaluationType.GET_GENERIC_TL;
+            case "GET_GENERIC_U": return EvaluationType.GET_GENERIC_U;
+            case "GET_GENERIC_L": return EvaluationType.GET_GENERIC_L;
+            case "GET_HARDCODED_TL": return EvaluationType.GET_HARDCODED_TL;
+            case "GET_HARDCODED_U": return EvaluationType.GET_HARDCODED_U;
+            case "GET_HARDCODED_L": return EvaluationType.GET_HARDCODED_L;
+            default:
+                System.err.println("Chosen experiment is not valid");
+                System.exit(0xFE);
+        }
+
+        return EvaluationType.GET_GENERIC_TL;
+    }
+
+    public static Triple<Integer, Integer, String> getExperimentSize(String experimentSize) {
+        switch (experimentSize) {
+            case "10000000": return new Triple<>(10000000, 100, "uniform_strategy_10M.dat");
+            case "1000000": return new Triple<>(1000000, 1000,"uniform_strategy.dat");
+            default:
+                System.err.println("Chosen experiment size is not valid");
+                System.exit(0xFE);
+        }
+
+        return new Triple<>(1000000, 100, "uniform_strategy.dat");
+    }
+
     public static void main(String[] args) throws IOException, ClassNotFoundException, InstantiationException,
             IllegalAccessException {
+
+        if (args.length != 2) {
+            System.err.println("Usage: <exec_name>.jar <experiment_type> <1000000|10000000>");
+            System.exit(0xFF);
+        }
+
+        EvaluationType evaluationType = ClassHierarchy.findExperiment(args[0]);
+        Triple<Integer, Integer, String> experimentSize = ClassHierarchy.getExperimentSize(args[1]);
+
+
         ClassHierarchy classHierarchy = new ClassHierarchy("class_structure.json", "generated.classes");
 
         // This should be the number of experiment runs which are used to warm-up the system, but are not considered
-        int warmupRuns = 1;
+        int warmupRuns = experimentSize.getSecond() / 10;
         // These are the runs which contribute towards the final results
-        int runCount = 21;
+        int runCount = experimentSize.getSecond();
 
         /* Run the experiments */
-        String[] strategy = ClassHierarchy.deserializeStrategy("uniform_strategy.dat");
+        String[] strategy = ClassHierarchy.deserializeStrategy(experimentSize.getThird());
         HashMap<String, Tuple<Double, Double>> results =  classHierarchy.exectueBenchmarks(runCount, warmupRuns,
-                EvaluationType.GET_HARDCODED_U,1000000, strategy);
+                evaluationType,experimentSize.getFirst(), strategy);
 
         /* Print the results */
         for (Map.Entry<String, Tuple<Double, Double>> entry : results.entrySet())
-            System.out.println(entry.getKey() + " --> (" + entry.getValue().getFirst() / 10e6 + " ms, " +
-                    entry.getValue().getSecond() / 10e6 + " ms)");
+            System.out.println("\"" + entry.getKey() + "\"," + entry.getValue().getFirst() / 10e6 + "," +
+                    entry.getValue().getSecond() / 10e6);
     }
 
 }
