@@ -1,4 +1,4 @@
-package benchmark.hardcoded;
+package benchmark.hardcoded.types;
 
 public class Tuple<T, E> {
     private T first;

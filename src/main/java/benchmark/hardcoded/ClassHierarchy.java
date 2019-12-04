@@ -2,33 +2,14 @@ package benchmark.hardcoded;
 
 import benchmark.hardcoded.types.ArrayListA0;
 import benchmark.hardcoded.types.ArrayListT;
+import benchmark.hardcoded.types.Triple;
+import benchmark.hardcoded.types.Tuple;
 import com.google.gson.Gson;
 import generated.classes.A0;
 
 import java.io.*;
 import java.util.*;
 
-enum EvaluationType {
-    ALL,
-    ADD_GENERIC_TL,
-    ADD_GENERIC_U,
-    ADD_GENERIC_L,
-    ADD_HARDCODED_TL,
-    ADD_HARDCODED_U,
-    ADD_HARDCODED_L,
-    GET_GENERIC_TL,
-    GET_GENERIC_U,
-    GET_GENERIC_L,
-    GET_HARDCODED_TL,
-    GET_HARDCODED_U,
-    GET_HARDCODED_L
-}
-
-enum SamplingStrategy {
-    UNIFORM,
-    SAME_TOP_LVL,
-    SAME_LAST_LEAF
-}
 
 public class ClassHierarchy {
     /* The size of the block which is used during strategy storage */
@@ -525,7 +506,7 @@ public class ClassHierarchy {
 
     public static Triple<Integer, Integer, String> getExperimentSize(String experimentSize) {
         switch (experimentSize) {
-            case "10000000": return new Triple<>(10000000, 100, "workloads/uniform_strategy_10M.dat");
+            case "10000000": return new Triple<>(10000000, 1000, "workloads/uniform_strategy_10M.dat");
             case "1000000": return new Triple<>(1000000, 1000,"workloads/uniform_strategy.dat");
             case "10000": return new Triple<>(10000, 10,"workloads/uniform_strategy_10k.dat"); // Sanity checks
             default:
@@ -558,9 +539,10 @@ public class ClassHierarchy {
         /* Run the experiments */
         String[] strategy = ClassHierarchy.deserializeStrategy(experimentSize.getThird());
         HashMap<String, Tuple<Double, Double>> results =  classHierarchy.exectueBenchmarks(runCount, warmupRuns,
-                evaluationType,experimentSize.getFirst(), strategy);
+                evaluationType, experimentSize.getFirst(), strategy);
 
         /* Print the results */
+        System.out.println(evaluationType + " " + experimentSize.toString());
         System.out.println("\"Experiment Name\",\"Mean Time [ms]\",\"Standard Deviation [ms]\"");
         for (Map.Entry<String, Tuple<Double, Double>> entry : results.entrySet())
             System.out.println("\"" + entry.getKey() + "\"," + entry.getValue().getFirst() / 10e6 + "," +

@@ -1,4 +1,4 @@
-package benchmark.hardcoded;
+package benchmark.hardcoded.types;
 
 public class Triple<T, E, F> {
     private T first;

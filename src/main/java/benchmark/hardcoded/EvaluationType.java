@@ -1,0 +1,17 @@
+package benchmark.hardcoded;
+
+enum EvaluationType {
+    ALL,
+    ADD_GENERIC_TL,
+    ADD_GENERIC_U,
+    ADD_GENERIC_L,
+    ADD_HARDCODED_TL,
+    ADD_HARDCODED_U,
+    ADD_HARDCODED_L,
+    GET_GENERIC_TL,
+    GET_GENERIC_U,
+    GET_GENERIC_L,
+    GET_HARDCODED_TL,
+    GET_HARDCODED_U,
+    GET_HARDCODED_L
+}

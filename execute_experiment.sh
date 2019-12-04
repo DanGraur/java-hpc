@@ -27,6 +27,7 @@ do
     rm -f ${file_name}
     csv_files+=${file_name}
     java -jar target/java-hpc-1.0-SNAPSHOT-jar-with-dependencies.jar ${i} ${1} >> ${file_name}
+    wait
 done
 
 rm -R target
