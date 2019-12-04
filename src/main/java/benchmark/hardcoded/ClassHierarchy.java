@@ -389,8 +389,8 @@ public class ClassHierarchy {
             ArrayListT<A0> leafClassWorkload = null;
             ArrayListT<A0> uniformClassWorkload = null;
 
-            if (i % 20 == 0)
-                System.out.println("At iteration " + i + "...");
+//            if (i % 20 == 0)
+//                System.out.println("At iteration " + i + "...");
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.ADD_GENERIC_TL ||
                     evaluationType == EvaluationType.GET_GENERIC_TL) {
@@ -508,7 +508,7 @@ public class ClassHierarchy {
     }
 
     public static EvaluationType findExperiment(String experientName) {
-        switch (experientName.toLowerCase()) {
+        switch (experientName.toUpperCase()) {
             case "GET_GENERIC_TL": return EvaluationType.GET_GENERIC_TL;
             case "GET_GENERIC_U": return EvaluationType.GET_GENERIC_U;
             case "GET_GENERIC_L": return EvaluationType.GET_GENERIC_L;
@@ -525,8 +525,9 @@ public class ClassHierarchy {
 
     public static Triple<Integer, Integer, String> getExperimentSize(String experimentSize) {
         switch (experimentSize) {
-            case "10000000": return new Triple<>(10000000, 100, "uniform_strategy_10M.dat");
-            case "1000000": return new Triple<>(1000000, 1000,"uniform_strategy.dat");
+            case "10000000": return new Triple<>(10000000, 100, "workloads/uniform_strategy_10M.dat");
+            case "1000000": return new Triple<>(1000000, 1000,"workloads/uniform_strategy.dat");
+            case "10000": return new Triple<>(10000, 10,"workloads/uniform_strategy_10k.dat"); // Sanity checks
             default:
                 System.err.println("Chosen experiment size is not valid");
                 System.exit(0xFE);
@@ -560,6 +561,7 @@ public class ClassHierarchy {
                 evaluationType,experimentSize.getFirst(), strategy);
 
         /* Print the results */
+        System.out.println("\"Experiment Name\",\"Mean Time [ms]\",\"Standard Deviation [ms]\"");
         for (Map.Entry<String, Tuple<Double, Double>> entry : results.entrySet())
             System.out.println("\"" + entry.getKey() + "\"," + entry.getValue().getFirst() / 10e6 + "," +
                     entry.getValue().getSecond() / 10e6);
