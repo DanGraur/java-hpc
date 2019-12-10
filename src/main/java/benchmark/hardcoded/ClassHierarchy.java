@@ -340,22 +340,22 @@ public class ClassHierarchy {
 
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_TL)
-                for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(i);
+                for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(j);
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_L)
-                for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(i);
+                for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(j);
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_U)
-                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(i);
+                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(j);
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_TL)
-                for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(i);
+                for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(j);
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_L)
-                for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(i);
+                for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(j);
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_U)
-                for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(i);
+                for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(j);
         }
 
         // Run a GC call, to help guarantee that the first experiment will be `clean`
@@ -429,7 +429,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_TL) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(i);
+                for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(j);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Top Level, Retrieval", time);
                 System.gc();
@@ -437,7 +437,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_L) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(i);
+                for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(j);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Leaf, Retrieval", time);
                 System.gc();
@@ -445,7 +445,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_U) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(i);
+                for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(j);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Uniform, Retrieval", time);
                 System.gc();
@@ -453,7 +453,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_TL) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(i);
+                for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(j);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Top Level, Retrieval", time);
                 System.gc();
@@ -461,7 +461,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_L) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(i);
+                for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(j);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Leaf, Retrieval", time);
                 System.gc();
@@ -469,7 +469,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_U) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(i);
+                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(j);
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Uniform, Retrieval", time);
                 System.gc();
@@ -497,7 +497,7 @@ public class ClassHierarchy {
             case "GET_HARDCODED_U": return EvaluationType.GET_HARDCODED_U;
             case "GET_HARDCODED_L": return EvaluationType.GET_HARDCODED_L;
             default:
-                System.err.println("Chosen experiment is not valid");
+                System.err.println("Chosen experiment is not valid: " + experientName);
                 System.exit(0xFE);
         }
 
@@ -510,7 +510,7 @@ public class ClassHierarchy {
             case "1000000": return new Triple<>(1000000, 1000,"workloads/uniform_strategy.dat");
             case "10000": return new Triple<>(10000, 10,"workloads/uniform_strategy_10k.dat"); // Sanity checks
             default:
-                System.err.println("Chosen experiment size is not valid");
+                System.err.println("Chosen experiment size is not valid: " + experimentSize);
                 System.exit(0xFE);
         }
 
@@ -521,7 +521,7 @@ public class ClassHierarchy {
             IllegalAccessException {
 
         if (args.length != 2) {
-            System.err.println("Usage: <exec_name>.jar <experiment_type> <1000000|10000000>");
+            System.err.println("Usage: java -jar <exec_name>.jar <experiment_type> <10000|1000000|10000000>");
             System.exit(0xFF);
         }
 
