@@ -340,22 +340,22 @@ public class ClassHierarchy {
 
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_TL)
-                for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(j);
+                for (int j = 0; j < sameClassWorkloadA0.size(); ++j) { A0 a = sameClassWorkloadA0.get(j); }
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_L)
-                for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(j);
+                for (int j = 0; j < leafWorkloadA0.size(); ++j) { A0 a =  leafWorkloadA0.get(j); }
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_U)
-                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(j);
+                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) { A0 a =  uniformClassWorkloadA0.get(j); }
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_TL)
-                for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(j);
+                for (int j = 0; j < sameClassWorkload.size(); ++j) { A0 a =  sameClassWorkload.get(j); }
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_L)
-                for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(j);
+                for (int j = 0; j < leafClassWorkload.size(); ++j) { A0 a =  leafClassWorkload.get(j); }
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_U)
-                for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(j);
+                for (int j = 0; j < uniformClassWorkload.size(); ++j) { A0 a =  uniformClassWorkload.get(j); }
         }
 
         // Run a GC call, to help guarantee that the first experiment will be `clean`
@@ -429,7 +429,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_TL) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < sameClassWorkload.size(); ++j) sameClassWorkload.get(j);
+                for (int j = 0; j < sameClassWorkload.size(); ++j)  { A0 a = sameClassWorkload.get(j); }
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Top Level, Retrieval", time);
                 System.gc();
@@ -437,7 +437,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_L) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < leafClassWorkload.size(); ++j) leafClassWorkload.get(j);
+                for (int j = 0; j < leafClassWorkload.size(); ++j)  { A0 a = leafClassWorkload.get(j); }
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Leaf, Retrieval", time);
                 System.gc();
@@ -445,7 +445,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_GENERIC_U) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < uniformClassWorkload.size(); ++j) uniformClassWorkload.get(j);
+                for (int j = 0; j < uniformClassWorkload.size(); ++j)  { A0 a = uniformClassWorkload.get(j); }
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Generic List, Uniform, Retrieval", time);
                 System.gc();
@@ -453,7 +453,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_TL) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < sameClassWorkloadA0.size(); ++j) sameClassWorkloadA0.get(j);
+                for (int j = 0; j < sameClassWorkloadA0.size(); ++j)  { A0 a = sameClassWorkloadA0.get(j); }
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Top Level, Retrieval", time);
                 System.gc();
@@ -461,7 +461,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_L) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < leafWorkloadA0.size(); ++j) leafWorkloadA0.get(j);
+                for (int j = 0; j < leafWorkloadA0.size(); ++j)  { A0 a = leafWorkloadA0.get(j); }
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Leaf, Retrieval", time);
                 System.gc();
@@ -469,7 +469,7 @@ public class ClassHierarchy {
 
             if (evaluationType == EvaluationType.ALL || evaluationType == EvaluationType.GET_HARDCODED_U) {
                 startTime = System.nanoTime();
-                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j) uniformClassWorkloadA0.get(j);
+                for (int j = 0; j < uniformClassWorkloadA0.size(); ++j)  { A0 a = uniformClassWorkloadA0.get(j); }
                 time = System.nanoTime() - startTime;
                 updateResultMapEntry(scores, "Custom List, Uniform, Retrieval", time);
                 System.gc();
